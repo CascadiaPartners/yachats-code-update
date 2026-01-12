@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet Map with GeoJSON</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+        .error-message {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-message" id="error"></div>
+    <div id="map"></div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script>
+        // Initialize the map with a default view
+        const map = L.map('map').setView([44.313793472594099, -124.10488646092809], 13);
+        
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+        
+        // URL to your GeoJSON file
+        // Replace this with the path to your GeoJSON file
+        const geojsonUrl = 'data.geojson';
+        
+        // Fetch and display the GeoJSON
+        fetch(geojsonUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to load GeoJSON file');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Add GeoJSON layer to the map
+                const geojsonLayer = L.geoJSON(data, {
+                    onEachFeature: function(feature, layer) {
+                        // Add popup if properties exist
+                        if (feature.properties) {
+                            let popupContent = '<b>Feature Properties:</b><br>';
+                            for (let key in feature.properties) {
+                                popupContent += `${key}: ${feature.properties[key]}<br>`;
+                            }
+                            layer.bindPopup(popupContent);
+                        }
+                    },
+                    style: function(feature) {
+                        // Style for polygons and lines
+                        return {
+                            color: '#3388ff',
+                            weight: 2,
+                            opacity: 0.8,
+                            fillOpacity: 0.4
+                        };
+                    }
+                }).addTo(map);
+                
+                // Fit map bounds to the GeoJSON layer
+                map.fitBounds(geojsonLayer.getBounds());
+            })
+            .catch(error => {
+                console.error('Error loading GeoJSON:', error);
+                const errorDiv = document.getElementById('error');
+                errorDiv.textContent = 'Error loading GeoJSON file. Please check the file path.';
+                errorDiv.style.display = 'block';
+            });
+    </script>
+</body>
+</html>
