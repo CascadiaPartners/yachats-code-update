@@ -130,26 +130,26 @@
         }
         
         // Option 1: Use inline GeoJSON (current default)
-        loadGeoJSON(sampleGeoJSON);
+       // loadGeoJSON(sampleGeoJSON);
         
         // Option 2: Load from a file (uncomment to use)
-        // const geojsonUrl = 'GeoJson/Yachats_Zoning.json';
-        // fetch(geojsonUrl)
-         //   .then(response => {
-           //      if (!response.ok) {
-             //        throw new Error('Failed to load GeoJSON file');
-             //    }
-            //     return response.json();
-         //   })
-          //  .then(data => {
-           //      loadGeoJSON(data);
-           //  })
-           //  .catch(error => {
-            //     console.error('Error loading GeoJSON:', error);
-            //     const errorDiv = document.getElementById('error');
-            //     errorDiv.textContent = 'Error loading GeoJSON file: ' + error.message;
-            //     errorDiv.style.display = 'block';
-           //  });
+         const geojsonUrl = 'GeoJson/Yachats_Zoning.json';
+         fetch(geojsonUrl)
+            .then(response => {
+                 if (!response.ok) {
+                   throw new Error('Failed to load GeoJSON file');
+                 }
+                 return response.json();
+           })
+            .then(data => {
+                 loadGeoJSON(data);
+             })
+             .catch(error => {
+                 console.error('Error loading GeoJSON:', error);
+                 const errorDiv = document.getElementById('error');
+                 errorDiv.textContent = 'Error loading GeoJSON file: ' + error.message;
+                 errorDiv.style.display = 'block';
+             });
     </script>
 </body>
 </html>
