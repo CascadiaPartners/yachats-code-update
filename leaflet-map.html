@@ -52,11 +52,30 @@
                     "type": "Feature",
                     "properties": {
                         "name": "Sample Point",
-                        "description": "This is a sample location"
+                        "description": "This is a sample location",
+                        "color": "#ff0000"
                     },
                     "geometry": {
                         "type": "Point",
                         "coordinates": [-124.10488646092809, 44.313793472594099]
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "name": "Sample Polygon",
+                        "description": "A blue polygon",
+                        "color": "#0000ff"
+                    },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[
+                            [-124.11, 44.32],
+                            [-124.09, 44.32],
+                            [-124.09, 44.31],
+                            [-124.11, 44.31],
+                            [-124.11, 44.32]
+                        ]]
                     }
                 }
             ]
@@ -76,19 +95,28 @@
                     }
                 },
                 style: function(feature) {
-                    // Style for polygons and lines
+                    // Use color from properties if available, otherwise default
+                    const featureColor = feature.properties && feature.properties.color 
+                        ? feature.properties.color 
+                        : '#3388ff';
+                    
                     return {
-                        color: '#3388ff',
+                        color: featureColor,
                         weight: 2,
                         opacity: 0.8,
+                        fillColor: featureColor,
                         fillOpacity: 0.4
                     };
                 },
                 pointToLayer: function(feature, latlng) {
-                    // Style for points
+                    // Use color from properties if available, otherwise default
+                    const featureColor = feature.properties && feature.properties.color 
+                        ? feature.properties.color 
+                        : '#3388ff';
+                    
                     return L.circleMarker(latlng, {
                         radius: 8,
-                        fillColor: '#3388ff',
+                        fillColor: featureColor,
                         color: '#fff',
                         weight: 2,
                         opacity: 1,
@@ -102,7 +130,7 @@
         }
         
         // Option 1: Use inline GeoJSON (current default)
-       // loadGeoJSON(sampleGeoJSON);
+        //loadGeoJSON(sampleGeoJSON);
         
         // Option 2: Load from a file (uncomment to use)
          const geojsonUrl = 'GeoJson/Yachats_Zoning2.json';
