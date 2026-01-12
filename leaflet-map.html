@@ -27,6 +27,61 @@
             z-index: 1000;
             display: none;
         }
+        .custom-popup {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+        }
+        .popup-header {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #3388ff;
+        }
+        .popup-properties {
+            margin: 10px 0;
+        }
+        .popup-property {
+            display: flex;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .popup-property:last-child {
+            border-bottom: none;
+        }
+        .property-key {
+            font-weight: bold;
+            color: #555;
+            min-width: 100px;
+            margin-right: 10px;
+        }
+        .property-value {
+            color: #333;
+            flex: 1;
+        }
+        .popup-images {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .image-container {
+            text-align: center;
+        }
+        .image-label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .popup-image {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -35,8 +90,8 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script>
-        // Initialize the map with a default view
-        const map = L.map('map').setView([44.313793472594099, -124.10488646092809], 13);
+        // Initialize the map without a default view
+        const map = L.map('map').setView([0, 0], 2);
         
         // Add OpenStreetMap tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -51,30 +106,83 @@
                 {
                     "type": "Feature",
                     "properties": {
-                        "name": "Sample Point",
-                        "description": "This is a sample location",
-                        "color": "#ff0000"
+                        "name": "Coastal Point - North",
+                        "description": "Northern coastal location",
+                        "color": "#ff0000",
+                        "img_existing": "https://via.placeholder.com/300x200/cccccc/333333?text=Existing+North",
+                        "img_proposed": "https://via.placeholder.com/300x200/4CAF50/ffffff?text=Proposed+North"
                     },
                     "geometry": {
                         "type": "Point",
-                        "coordinates": [-124.10488646092809, 44.313793472594099]
+                        "coordinates": [-124.05, 44.40]
                     }
                 },
                 {
                     "type": "Feature",
                     "properties": {
-                        "name": "Sample Polygon",
-                        "description": "A blue polygon",
-                        "color": "#0000ff"
+                        "name": "Coastal Point - South",
+                        "description": "Southern coastal location",
+                        "color": "#ff6600",
+                        "status": "In Progress"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [-124.15, 44.25]
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "name": "Central Area",
+                        "description": "Main development zone",
+                        "color": "#0000ff",
+                        "area_sqft": "50000"
                     },
                     "geometry": {
                         "type": "Polygon",
                         "coordinates": [[
-                            [-124.11, 44.32],
-                            [-124.09, 44.32],
-                            [-124.09, 44.31],
-                            [-124.11, 44.31],
-                            [-124.11, 44.32]
+                            [-124.12, 44.35],
+                            [-124.08, 44.35],
+                            [-124.08, 44.32],
+                            [-124.12, 44.32],
+                            [-124.12, 44.35]
+                        ]]
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "name": "Eastern Boundary",
+                        "description": "Property line",
+                        "color": "#9900ff"
+                    },
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": [
+                            [-124.02, 44.42],
+                            [-124.04, 44.38],
+                            [-124.03, 44.34],
+                            [-124.05, 44.30]
+                        ]
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "name": "Western Reserve",
+                        "description": "Protected area",
+                        "color": "#00cc66",
+                        "img_existing": "https://via.placeholder.com/300x200/8B4513/ffffff?text=Existing+Reserve",
+                        "img_proposed": "https://via.placeholder.com/300x200/228B22/ffffff?text=Proposed+Reserve"
+                    },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[
+                            [-124.18, 44.38],
+                            [-124.16, 44.38],
+                            [-124.16, 44.36],
+                            [-124.18, 44.36],
+                            [-124.18, 44.38]
                         ]]
                     }
                 }
@@ -87,11 +195,64 @@
                 onEachFeature: function(feature, layer) {
                     // Add popup if properties exist
                     if (feature.properties) {
-                        let popupContent = '<b>Feature Properties:</b><br>';
-                        for (let key in feature.properties) {
-                            popupContent += `${key}: ${feature.properties[key]}<br>`;
+                        let popupContent = '<div class="custom-popup">';
+                        
+                        // Add header if name exists
+                        if (feature.properties.name) {
+                            popupContent += `<div class="popup-header">${feature.properties.name}</div>`;
                         }
-                        layer.bindPopup(popupContent);
+                        
+                        // Add other properties (excluding special ones)
+                        const excludeKeys = ['name', 'img_existing', 'img_proposed', 'color'];
+                        const otherProps = Object.keys(feature.properties).filter(key => !excludeKeys.includes(key));
+                        
+                        if (otherProps.length > 0) {
+                            popupContent += '<div class="popup-properties">';
+                            otherProps.forEach(key => {
+                                popupContent += `
+                                    <div class="popup-property">
+                                        <div class="property-key">${key}:</div>
+                                        <div class="property-value">${feature.properties[key]}</div>
+                                    </div>
+                                `;
+                            });
+                            popupContent += '</div>';
+                        }
+                        
+                        // Add images if they exist
+                        const hasExisting = feature.properties.img_existing;
+                        const hasProposed = feature.properties.img_proposed;
+                        
+                        if (hasExisting || hasProposed) {
+                            popupContent += '<div class="popup-images">';
+                            
+                            if (hasExisting) {
+                                popupContent += `
+                                    <div class="image-container">
+                                        <div class="image-label">Existing</div>
+                                        <img src="${feature.properties.img_existing}" alt="Existing" class="popup-image">
+                                    </div>
+                                `;
+                            }
+                            
+                            if (hasProposed) {
+                                popupContent += `
+                                    <div class="image-container">
+                                        <div class="image-label">Proposed</div>
+                                        <img src="${feature.properties.img_proposed}" alt="Proposed" class="popup-image">
+                                    </div>
+                                `;
+                            }
+                            
+                            popupContent += '</div>';
+                        }
+                        
+                        popupContent += '</div>';
+                        
+                        layer.bindPopup(popupContent, {
+                            maxWidth: 600,
+                            minWidth: 300
+                        });
                     }
                 },
                 style: function(feature) {
@@ -130,26 +291,26 @@
         }
         
         // Option 1: Use inline GeoJSON (current default)
-       // loadGeoJSON(sampleGeoJSON);
+        loadGeoJSON(sampleGeoJSON);
         
         // Option 2: Load from a file (uncomment to use)
-         const geojsonUrl = 'GeoJson/Yachats_Zoning.json';
-         fetch(geojsonUrl)
-            .then(response => {
-                 if (!response.ok) {
-                   throw new Error('Failed to load GeoJSON file');
-                 }
-                 return response.json();
-           })
-            .then(data => {
-                 loadGeoJSON(data);
-             })
-             .catch(error => {
-                 console.error('Error loading GeoJSON:', error);
-                 const errorDiv = document.getElementById('error');
-                 errorDiv.textContent = 'Error loading GeoJSON file: ' + error.message;
-                 errorDiv.style.display = 'block';
-             });
+        // const geojsonUrl = 'data.geojson';
+        // fetch(geojsonUrl)
+        //     .then(response => {
+        //         if (!response.ok) {
+        //             throw new Error('Failed to load GeoJSON file');
+        //         }
+        //         return response.json();
+        //     })
+        //     .then(data => {
+        //         loadGeoJSON(data);
+        //     })
+        //     .catch(error => {
+        //         console.error('Error loading GeoJSON:', error);
+        //         const errorDiv = document.getElementById('error');
+        //         errorDiv.textContent = 'Error loading GeoJSON file: ' + error.message;
+        //         errorDiv.style.display = 'block';
+        //     });
     </script>
 </body>
 </html>
