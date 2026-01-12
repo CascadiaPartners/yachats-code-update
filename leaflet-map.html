@@ -44,51 +44,84 @@
             maxZoom: 19
         }).addTo(map);
         
-        // URL to your GeoJSON file
-        // Replace this with the path to your GeoJSON file
-        const geojsonUrl = 'GeoJson/Yachats_Zoning2.json';
-        
-        // Fetch and display the GeoJSON
-        fetch(geojsonUrl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to load GeoJSON file');
+        // Sample GeoJSON data (replace with your own or load from file)
+        const sampleGeoJSON = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "name": "Sample Point",
+                        "description": "This is a sample location"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [-124.10488646092809, 44.313793472594099]
+                    }
                 }
-                return response.json();
+            ]
+        };
+        
+        // Function to load and display GeoJSON
+        function loadGeoJSON(data) {
+            const geojsonLayer = L.geoJSON(data, {
+                onEachFeature: function(feature, layer) {
+                    // Add popup if properties exist
+                    if (feature.properties) {
+                        let popupContent = '<b>Feature Properties:</b><br>';
+                        for (let key in feature.properties) {
+                            popupContent += `${key}: ${feature.properties[key]}<br>`;
+                        }
+                        layer.bindPopup(popupContent);
+                    }
+                },
+                style: function(feature) {
+                    // Style for polygons and lines
+                    return {
+                        color: '#3388ff',
+                        weight: 2,
+                        opacity: 0.8,
+                        fillOpacity: 0.4
+                    };
+                },
+                pointToLayer: function(feature, latlng) {
+                    // Style for points
+                    return L.circleMarker(latlng, {
+                        radius: 8,
+                        fillColor: '#3388ff',
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+                }
+            }).addTo(map);
+            
+            // Fit map bounds to the GeoJSON layer
+            map.fitBounds(geojsonLayer.getBounds());
+        }
+        
+        // Option 1: Use inline GeoJSON (current default)
+       // loadGeoJSON(sampleGeoJSON);
+        
+        // Option 2: Load from a file (uncomment to use)
+         const geojsonUrl = 'GeoJson/Yachats_Zoning2.json';
+         fetch(geojsonUrl)
+            .then(response => {
+                 if (!response.ok) {
+                     throw new Error('Failed to load GeoJSON file');
+                 }
+                 return response.json();
             })
             .then(data => {
-                // Add GeoJSON layer to the map
-                const geojsonLayer = L.geoJSON(data, {
-                    onEachFeature: function(feature, layer) {
-                        // Add popup if properties exist
-                        if (feature.properties) {
-                            let popupContent = '<b>Feature Properties:</b><br>';
-                            for (let key in feature.properties) {
-                                popupContent += `${key}: ${feature.properties[key]}<br>`;
-                            }
-                            layer.bindPopup(popupContent);
-                        }
-                    },
-                    style: function(feature) {
-                        // Style for polygons and lines
-                        return {
-                            color: '#3388ff',
-                            weight: 2,
-                            opacity: 0.8,
-                            fillOpacity: 0.4
-                        };
-                    }
-                }).addTo(map);
-                
-                // Fit map bounds to the GeoJSON layer
-                map.fitBounds(geojsonLayer.getBounds());
-            })
-            .catch(error => {
-                console.error('Error loading GeoJSON:', error);
-                const errorDiv = document.getElementById('error');
-                errorDiv.textContent = 'Error loading GeoJSON file. Please check the file path.';
-                errorDiv.style.display = 'block';
-            });
+                 loadGeoJSON(data);
+             })
+             .catch(error => {
+                 console.error('Error loading GeoJSON:', error);
+                 const errorDiv = document.getElementById('error');
+                 errorDiv.textContent = 'Error loading GeoJSON file: ' + error.message;
+                 errorDiv.style.display = 'block';
+             });
     </script>
 </body>
 </html>
