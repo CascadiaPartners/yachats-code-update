@@ -82,6 +82,9 @@
             border: 2px solid #ddd;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .grayscale-tiles {
+            filter: grayscale(100%);
+        }
     </style>
 </head>
 <body>
@@ -93,10 +96,11 @@
         // Initialize the map without a default view
         const map = L.map('map').setView([0, 0], 2);
         
-        // Add OpenStreetMap tile layer
+        // Add OpenStreetMap tile layer with grayscale filter
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19
+            maxZoom: 19,
+            className: 'grayscale-tiles'
         }).addTo(map);
         
         // Sample GeoJSON data (replace with your own or load from file)
@@ -291,26 +295,26 @@
         }
         
         // Option 1: Use inline GeoJSON (current default)
-        loadGeoJSON(sampleGeoJSON);
+       // loadGeoJSON(sampleGeoJSON);
         
         // Option 2: Load from a file (uncomment to use)
-        // const geojsonUrl = 'data.geojson';
-        // fetch(geojsonUrl)
-        //     .then(response => {
-        //         if (!response.ok) {
-        //             throw new Error('Failed to load GeoJSON file');
-        //         }
-        //         return response.json();
-        //     })
-        //     .then(data => {
-        //         loadGeoJSON(data);
-        //     })
-        //     .catch(error => {
-        //         console.error('Error loading GeoJSON:', error);
-        //         const errorDiv = document.getElementById('error');
-        //         errorDiv.textContent = 'Error loading GeoJSON file: ' + error.message;
-        //         errorDiv.style.display = 'block';
-        //     });
+         const geojsonUrl = 'GeoJson/Yachats_Zoning.json';
+         fetch(geojsonUrl)
+            .then(response => {
+                if (!response.ok) {
+                     throw new Error('Failed to load GeoJSON file');
+                 }
+                 return response.json();
+             })
+             .then(data => {
+                 loadGeoJSON(data);
+             })
+             .catch(error => {
+                 console.error('Error loading GeoJSON:', error);
+                 const errorDiv = document.getElementById('error');
+                 errorDiv.textContent = 'Error loading GeoJSON file: ' + error.message;
+                 errorDiv.style.display = 'block';
+             });
     </script>
 </body>
 </html>
