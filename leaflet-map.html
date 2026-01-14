@@ -85,10 +85,35 @@
         .grayscale-tiles {
             filter: grayscale(100%);
         }
+        .map-title {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 300px;
+        }
+        .title-main {
+            font-weight: bold;
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .title-subtitle {
+            font-size: 14px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
     <div class="error-message" id="error"></div>
+    <div class="map-title">
+        <div class="title-main">Yachats Zoning Map</div>
+        <div class="title-subtitle">Click on areas for more info</div>
+    </div>
     <div id="map"></div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
@@ -102,96 +127,6 @@
             maxZoom: 19,
             className: 'grayscale-tiles'
         }).addTo(map);
-        
-        // Sample GeoJSON data (replace with your own or load from file)
-        const sampleGeoJSON = {
-            "type": "FeatureCollection",
-            "features": [
-                {
-                    "type": "Feature",
-                    "properties": {
-                        "name": "Coastal Point - North",
-                        "description": "Northern coastal location",
-                        "color": "#ff0000",
-                        "img_existing": "https://via.placeholder.com/300x200/cccccc/333333?text=Existing+North",
-                        "img_proposed": "https://via.placeholder.com/300x200/4CAF50/ffffff?text=Proposed+North"
-                    },
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [-124.05, 44.40]
-                    }
-                },
-                {
-                    "type": "Feature",
-                    "properties": {
-                        "name": "Coastal Point - South",
-                        "description": "Southern coastal location",
-                        "color": "#ff6600",
-                        "status": "In Progress"
-                    },
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [-124.15, 44.25]
-                    }
-                },
-                {
-                    "type": "Feature",
-                    "properties": {
-                        "name": "Central Area",
-                        "description": "Main development zone",
-                        "color": "#0000ff",
-                        "area_sqft": "50000"
-                    },
-                    "geometry": {
-                        "type": "Polygon",
-                        "coordinates": [[
-                            [-124.12, 44.35],
-                            [-124.08, 44.35],
-                            [-124.08, 44.32],
-                            [-124.12, 44.32],
-                            [-124.12, 44.35]
-                        ]]
-                    }
-                },
-                {
-                    "type": "Feature",
-                    "properties": {
-                        "name": "Eastern Boundary",
-                        "description": "Property line",
-                        "color": "#9900ff"
-                    },
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [
-                            [-124.02, 44.42],
-                            [-124.04, 44.38],
-                            [-124.03, 44.34],
-                            [-124.05, 44.30]
-                        ]
-                    }
-                },
-                {
-                    "type": "Feature",
-                    "properties": {
-                        "name": "Western Reserve",
-                        "description": "Protected area",
-                        "color": "#00cc66",
-                        "img_existing": "https://via.placeholder.com/300x200/8B4513/ffffff?text=Existing+Reserve",
-                        "img_proposed": "https://via.placeholder.com/300x200/228B22/ffffff?text=Proposed+Reserve"
-                    },
-                    "geometry": {
-                        "type": "Polygon",
-                        "coordinates": [[
-                            [-124.18, 44.38],
-                            [-124.16, 44.38],
-                            [-124.16, 44.36],
-                            [-124.18, 44.36],
-                            [-124.18, 44.38]
-                        ]]
-                    }
-                }
-            ]
-        };
         
         // Function to load and display GeoJSON
         function loadGeoJSON(data) {
@@ -234,7 +169,7 @@
                                 popupContent += `
                                     <div class="image-container">
                                         <div class="image-label">Existing</div>
-                                        <img src="${feature.properties.img_existing}" alt="Existing" class="popup-image">
+                                        <img src="Images/${feature.properties.img_existing}" alt="Existing" class="popup-image">
                                     </div>
                                 `;
                             }
@@ -290,31 +225,34 @@
                 }
             }).addTo(map);
             
-            // Fit map bounds to the GeoJSON layer
-            map.fitBounds(geojsonLayer.getBounds());
+            // Fit map bounds to the GeoJSON layer with padding and max zoom
+            const bounds = geojsonLayer.getBounds();
+            if (bounds.isValid()) {
+                map.fitBounds(bounds, { 
+                    padding: [50, 50],
+                    maxZoom: 15
+                });
+            }
         }
         
-        // Option 1: Use inline GeoJSON (current default)
-       // loadGeoJSON(sampleGeoJSON);
-        
-        // Option 2: Load from a file (uncomment to use)
-         const geojsonUrl = 'GeoJson/Yachats_Zoning.json';
-         fetch(geojsonUrl)
+        // Load from a file
+        const geojsonUrl = 'GeoJson/Yachats_Zoning.json';
+        fetch(geojsonUrl)
             .then(response => {
                 if (!response.ok) {
-                     throw new Error('Failed to load GeoJSON file');
-                 }
-                 return response.json();
-             })
-             .then(data => {
-                 loadGeoJSON(data);
-             })
-             .catch(error => {
-                 console.error('Error loading GeoJSON:', error);
-                 const errorDiv = document.getElementById('error');
-                 errorDiv.textContent = 'Error loading GeoJSON file: ' + error.message;
-                 errorDiv.style.display = 'block';
-             });
+                    throw new Error('Failed to load GeoJSON file');
+                }
+                return response.json();
+            })
+            .then(data => {
+                loadGeoJSON(data);
+            })
+            .catch(error => {
+                console.error('Error loading GeoJSON:', error);
+                const errorDiv = document.getElementById('error');
+                errorDiv.textContent = 'Error loading GeoJSON file: ' + error.message;
+                errorDiv.style.display = 'block';
+            });
     </script>
 </body>
 </html>
